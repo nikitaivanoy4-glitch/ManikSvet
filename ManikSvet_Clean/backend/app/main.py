@@ -66,6 +66,11 @@ app.include_router(api_router)
 async def health_check():
     return {"status": "ok", "app": settings.PROJECT_NAME, "version": settings.VERSION}
 
+# Serve static files (covers, avatars)
+static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "static"))
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
 # Serve Frontend SPA
 frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
 if os.path.exists(frontend_dist):
@@ -73,7 +78,7 @@ if os.path.exists(frontend_dist):
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
-        if full_path.startswith("api/"):
+        if full_path.startswith("api/") or full_path.startswith("static/"):
             return None
         file_path = os.path.join(frontend_dist, full_path)
         if os.path.exists(file_path) and os.path.isfile(file_path):

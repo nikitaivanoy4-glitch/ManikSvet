@@ -136,12 +136,20 @@ async def msg_portfolio(message: types.Message):
 @dp.message(F.text == "✨ Записаться онлайн")
 async def msg_book(message: types.Message):
     text = (
-        "<b>✨ ОНЛАЙН-ЗАПИСЬ</b>\n\n"
-        "Для записи в веб-сервисе откройте ссылку:\n"
-        f"👉 <a href='{settings.WEBAPP_URL}'>Открыть сервис записи ManikSvet</a>\n\n"
-        "Или напишите мастеру Светлане напрямую: @Manikurdrojino"
+        "<b>✨ ОНЛАЙН-ЗАПИСЬ В СТУДИЮ</b>\n\n"
+        "Нажмите на кнопку ниже, чтобы открыть онлайн-расписание и выбрать удобное время:"
     )
-    await message.answer(text, parse_mode="HTML")
+    inline_kb = get_client_inline_keyboard()
+    if inline_kb:
+        await message.answer(text, parse_mode="HTML", reply_markup=inline_kb)
+    else:
+        text_link = (
+            f"<b>✨ ОНЛАЙН-ЗАПИСЬ</b>\n\n"
+            f"Для записи в веб-сервисе откройте ссылку:\n"
+            f"👉 <a href='{settings.WEBAPP_URL}'>Открыть сервис записи ManikSvet</a>\n\n"
+            f"Или напишите мастеру Светлане напрямую: @Manikurdrojino"
+        )
+        await message.answer(text_link, parse_mode="HTML")
 
 @dp.message(F.text == "📅 Мои записи")
 async def msg_my_bookings(message: types.Message):
