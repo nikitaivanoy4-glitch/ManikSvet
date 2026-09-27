@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: manik_svet_db
+    restart: always
+    environment:
+      POSTGRES_DB: manik_svet
+      POSTGRES_USER: manik_user
+      POSTGRES_PASSWORD: manik_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: manik_svet_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://manik_user:manik_password@postgres:5432/manik_svet
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - ADMIN_TELEGRAM_IDS=${ADMIN_TELEGRAM_IDS}
+      - WEBAPP_URL=${WEBAPP_URL}
+      - SECRET_KEY=${SECRET_KEY}
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
