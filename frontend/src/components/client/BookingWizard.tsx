@@ -27,7 +27,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
 
   // Client inputs
   const [clientName, setClientName] = useState<string>(user?.first_name || '');
-  const [clientPhone, setClientPhone] = useState<string>(user?.phone || '');
+  const [clientPhone, setClientPhone] = useState<string>(user?.phone || '+7');
   const [notes, setNotes] = useState<string>('');
 
   const [loadingDates, setLoadingDates] = useState<boolean>(false);
@@ -89,8 +89,8 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
       return;
     }
 
-    if (!clientPhone.trim() || clientPhone.trim().length < 5) {
-      setErrorMsg('Пожалуйста, укажите контактный телефон');
+    if (!clientPhone.trim() || clientPhone.replace(/\D/g, '').length < 11) {
+      setErrorMsg('Пожалуйста, укажите полный номер телефона (11 цифр)');
       return;
     }
 
@@ -359,12 +359,23 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
                   <Phone className="w-4 h-4 text-[#C5A059] absolute left-3 top-3" />
                   <input
                     type="tel"
+                    inputMode="numeric"
                     value={clientPhone}
-                    onChange={(e) => setClientPhone(e.target.value)}
-                    placeholder="+7 (999) 000-00-00"
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      // Always keep +7 prefix
+                      if (!val.startsWith('+7')) {
+                        val = '+7' + val.replace(/^\+?7?/, '');
+                      }
+                      // Keep only +7 and digits
+                      const digits = val.slice(2).replace(/\D/g, '').slice(0, 10);
+                      setClientPhone('+7' + digits);
+                    }}
+                    placeholder="+7XXXXXXXXXX"
                     className="w-full pl-9 pr-3 py-2.5 bg-[#FAF8F5] border border-[#EAE3D9] rounded-xl text-sm text-[#1A1817] focus:outline-none focus:border-[#C5A059]"
                   />
                 </div>
+                <p className="text-[10px] text-[#6E665F] mt-1 ml-1">Введите 10 цифр после +7</p>
               </div>
 
               <div>

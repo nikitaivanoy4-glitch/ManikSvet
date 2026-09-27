@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Calendar, Image as ImageIcon, BookmarkCheck, Info, LayoutDashboard, Clock, Users, Wrench, Settings } from 'lucide-react';
+import { Sparkles, Calendar, Image as ImageIcon, BookmarkCheck, Info, LayoutDashboard, Clock, Users, Wrench, Settings, Star } from 'lucide-react';
 
 interface NavbarProps {
   activeTab: string;
@@ -13,6 +13,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, isAdmin
     { id: 'book', label: 'Записаться', icon: Calendar, highlight: true },
     { id: 'portfolio', label: 'Портфолио', icon: ImageIcon },
     { id: 'my-bookings', label: 'Мои записи', icon: BookmarkCheck },
+    { id: 'reviews', label: 'Отзывы', icon: Star },
     { id: 'info', label: 'О мастере', icon: Info },
   ];
 
@@ -22,6 +23,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, isAdmin
     { id: 'admin-bookings', label: 'Записи', icon: Calendar },
     { id: 'admin-clients', label: 'Клиенты', icon: Users },
     { id: 'admin-services', label: 'Услуги', icon: Wrench },
+    { id: 'admin-reviews', label: 'Отзывы', icon: Star },
     { id: 'admin-settings', label: 'Настройки', icon: Settings },
   ];
 

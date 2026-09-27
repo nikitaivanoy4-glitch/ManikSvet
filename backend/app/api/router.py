@@ -6,6 +6,7 @@ from app.api.v1.bookings import router as bookings_router
 from app.api.v1.portfolio import router as portfolio_router
 from app.api.v1.settings import router as settings_router
 from app.api.v1.admin import router as admin_router
+from app.api.v1.reviews import router as reviews_router
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -16,3 +17,4 @@ api_router.include_router(bookings_router)
 api_router.include_router(portfolio_router)
 api_router.include_router(settings_router)
 api_router.include_router(admin_router)
+api_router.include_router(reviews_router)

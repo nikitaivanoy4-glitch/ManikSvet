@@ -5,6 +5,7 @@ from app.models.schedule import ScheduleDay, ScheduleSlotOverride
 from app.models.portfolio import PortfolioItem
 from app.models.setting import Setting
 from app.models.notification import NotificationLog
+from app.models.review import Review
 
 __all__ = [
     "User",
@@ -15,5 +16,6 @@ __all__ = [
     "ScheduleSlotOverride",
     "PortfolioItem",
     "Setting",
-    "NotificationLog"
+    "NotificationLog",
+    "Review",
 ]
