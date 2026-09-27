@@ -34,10 +34,8 @@ async def seed_initial_data(db: AsyncSession):
         res = await db.execute(select(Setting).where(Setting.key == key))
         setting_obj = res.scalar_one_or_none()
         if not setting_obj:
+            # Only insert if doesn't exist yet — never overwrite user changes
             db.add(Setting(key=key, value=val, description=desc))
-        else:
-            # Update existing to match user request
-            setting_obj.value = val
 
     # 2. Seed Svetlana's Services
     res_services = await db.execute(select(Service))

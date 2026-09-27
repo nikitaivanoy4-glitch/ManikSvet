@@ -66,7 +66,7 @@ async def get_current_user(
     result = await db.execute(select(User).where(User.telegram_id == tg_id))
     user = result.scalar_one_or_none()
 
-    is_admin = tg_id in settings.ADMIN_TELEGRAM_IDS or tg_id == 999999999 # Treat dev user as admin for easy full testing
+    is_admin = tg_id in settings.ADMIN_TELEGRAM_IDS
 
     if not user:
         user = User(

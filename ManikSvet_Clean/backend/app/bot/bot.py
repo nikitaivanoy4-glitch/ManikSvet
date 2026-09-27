@@ -10,6 +10,7 @@ from aiogram.types import (
     InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo, FSInputFile
 )
 from sqlalchemy import select, and_
+from app.models.user import User
 
 from app.core.config import settings
 from app.core.database import AsyncSessionLocal
@@ -154,18 +155,33 @@ async def msg_book(message: types.Message):
 @dp.message(F.text == "📅 Мои записи")
 async def msg_my_bookings(message: types.Message):
     async with AsyncSessionLocal() as db:
-        res = await db.execute(
-            select(Booking)
-            .where(Booking.client_phone == message.from_user.username)
+        # Find user by telegram_id first
+        user_res = await db.execute(
+            select(User).where(User.telegram_id == message.from_user.id)
         )
-        bookings = res.scalars().all()
+        user = user_res.scalar_one_or_none()
+
+        bookings = []
+        if user:
+            res = await db.execute(
+                select(Booking)
+                .where(
+                    and_(
+                        Booking.user_id == user.id,
+                        Booking.status.in_([BookingStatus.CONFIRMED, BookingStatus.COMPLETED])
+                    )
+                )
+                .order_by(Booking.booking_date.asc(), Booking.start_time.asc())
+            )
+            bookings = res.scalars().all()
 
     if not bookings:
         text = "<b>📅 Ваши записи:</b>\n\nУ вас пока нет активных записей. Нажмите '✨ Записаться онлайн' для выбора даты!"
     else:
         text = "<b>📅 Ваши записи:</b>\n\n"
         for b in bookings:
-            text += f"▪️ {b.booking_date.strftime('%d.%m.%Y')} в {b.start_time.strftime('%H:%M')} — {b.price} ₽\n"
+            status_icon = "✅" if b.status == BookingStatus.CONFIRMED else "🏁"
+            text += f"{status_icon} <b>{b.booking_date.strftime('%d.%m.%Y')}</b> в <b>{b.start_time.strftime('%H:%M')}</b> — {b.price:,.0f} ₽\n"
 
     await message.answer(text, parse_mode="HTML")
 
