@@ -58,7 +58,7 @@ async def cmd_start(message: types.Message):
     safe_first_name = html.escape(message.from_user.first_name or "Гость")
     
     welcome_text = (
-        f"<b>Приветствуем вас в студии Маникюр Дрожжино! ✨</b>\n\n"
+        f"<b>Добро пожаловать! ✨</b>\n\n"
         f"Здравствуйте, <b>{safe_first_name}</b>!\n"
         f"Мастер Светлана рада предложить вам премиальный уход за ногтями, укрепление и эстетику.\n\n"
         f"📍 <b>Адрес:</b> М.О. Дрожжино, Новое шоссе 5к2\n"
@@ -90,7 +90,7 @@ async def cmd_start(message: types.Message):
     if inline_kb:
         await message.answer("✨ Нажмите для открытия приложения:", reply_markup=inline_kb)
 
-@dp.message(F.text == "💅 Услуги и Прайс")
+@dp.message(F.text.contains("Услуги") | F.text.contains("Прайс"))
 async def msg_services(message: types.Message):
     async with AsyncSessionLocal() as db:
         res = await db.execute(select(Service).where(Service.is_active == True).order_by(Service.display_order.asc()))
@@ -105,7 +105,7 @@ async def msg_services(message: types.Message):
 
     await message.answer(text, parse_mode="HTML")
 
-@dp.message(F.text == "📍 Адрес и Контакты")
+@dp.message(F.text.contains("Адрес") | F.text.contains("Контакты"))
 async def msg_info(message: types.Message):
     text = (
         "<b>📍 СТУДИЯ МАНИКЮР ДРОЖЖИНО</b>\n\n"
@@ -118,7 +118,7 @@ async def msg_info(message: types.Message):
     )
     await message.answer(text, parse_mode="HTML", disable_web_page_preview=True)
 
-@dp.message(F.text == "🖼 Портфолио")
+@dp.message(F.text.contains("Портфолио") | F.text.contains("Работы"))
 async def msg_portfolio(message: types.Message):
     text = (
         "<b>🖼 ПОРТФОЛИО РАБОТ</b>\n\n"
@@ -137,7 +137,7 @@ async def msg_portfolio(message: types.Message):
             pass
     await message.answer(text, parse_mode="HTML")
 
-@dp.message(F.text == "✨ Записаться онлайн")
+@dp.message(F.text.contains("Записаться") | F.text.contains("Запись") | F.text.contains("Онлайн"))
 async def msg_book(message: types.Message):
     text = (
         "<b>✨ ОНЛАЙН-ЗАПИСЬ В СТУДИЮ</b>\n\n"
@@ -155,10 +155,9 @@ async def msg_book(message: types.Message):
         )
         await message.answer(text_link, parse_mode="HTML")
 
-@dp.message(F.text == "📅 Мои записи")
+@dp.message(F.text.contains("Мои записи") | F.text.contains("Моя запись"))
 async def msg_my_bookings(message: types.Message):
     async with AsyncSessionLocal() as db:
-        # Find user by telegram_id first
         user_res = await db.execute(
             select(User).where(User.telegram_id == message.from_user.id)
         )
@@ -188,8 +187,24 @@ async def msg_my_bookings(message: types.Message):
 
     await message.answer(text, parse_mode="HTML")
 
-@dp.message(F.text == "👑 Кабинет Мастера")
-@dp.message(Command("admin"))
+@dp.message(F.text.contains("Отзыв"))
+async def msg_reviews(message: types.Message):
+    url = settings.WEBAPP_URL.rstrip('/') + "#reviews"
+    text = (
+        "<b>⭐ ОТЗЫВЫ НАШИХ КЛИЕНТОВ</b>\n\n"
+        "Мы очень ценим ваше мнение и стараемся быть лучше с каждым днём!\n\n"
+        "Вы можете прочитать отзывы клиентов или оставить свой отзыв через наше мини-приложение:"
+    )
+    inline_kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="⭐ Открыть отзывы / Оставить отзыв", web_app=WebAppInfo(url=url))]
+    ]) if settings.WEBAPP_URL.startswith("https://") else None
+
+    if inline_kb:
+        await message.answer(text, parse_mode="HTML", reply_markup=inline_kb)
+    else:
+        await message.answer(f"{text}\n\n👉 <a href='{url}'>Перейти к отзывам</a>", parse_mode="HTML")
+
+@dp.message(F.text.contains("Кабинет") | F.text.contains("Мастера") | Command("admin"))
 async def cmd_admin(message: types.Message):
     if message.from_user.id not in settings.ADMIN_TELEGRAM_IDS:
         await message.answer("⛔ Доступ к админ-панели разрешен только мастеру.")
@@ -222,21 +237,14 @@ async def cmd_admin(message: types.Message):
 
     await message.answer(msg, parse_mode="HTML")
 
-
-@dp.message(F.text == "⭐ Отзывы")
-async def msg_reviews(message: types.Message):
-    url = settings.WEBAPP_URL.rstrip('/') + "#reviews"
-    text = (
-        "<b>⭐ ОТЗЫВЫ НАШИХ КЛИЕНТОВ</b>\n\n"
-        "Мы очень ценим ваше мнение и стараемся быть лучше с каждым днём!\n\n"
-        "Вы можете прочитать отзывы клиентов или оставить свой отзыв через наше мини-приложение:"
-    )
-    inline_kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="⭐ Открыть отзывы / Оставить отзыв", web_app=WebAppInfo(url=url))]
-    ]) if settings.WEBAPP_URL.startswith("https://") else None
-
+# Fallback for any other text: show start menu & main keyboard
+@dp.message()
+async def fallback_handler(message: types.Message):
+    is_admin = message.from_user.id in settings.ADMIN_TELEGRAM_IDS
+    reply_kb = get_main_reply_keyboard(is_admin)
+    inline_kb = get_client_inline_keyboard()
+    
+    msg_text = "Выберите нужное действие из меню ниже:"
+    await message.answer(msg_text, reply_markup=reply_kb)
     if inline_kb:
-        await message.answer(text, parse_mode="HTML", reply_markup=inline_kb)
-    else:
-        await message.answer(f"{text}\n\n👉 <a href='{url}'>Перейти к отзывам</a>", parse_mode="HTML")
-
+        await message.answer("✨ Нажмите для открытия онлайн-записи:", reply_markup=inline_kb)
