@@ -26,6 +26,21 @@ keep_alive_task = None
 review_reminder_task = None
 
 
+async def start_telegram_bot():
+    """Start Telegram bot long-polling cleanly after removing any active webhooks"""
+    if not bot:
+        return
+    try:
+        logger.info("Clearing any existing Telegram Webhooks...")
+        await bot.delete_webhook(drop_pending_updates=True)
+        logger.info("Starting Telegram Bot long-polling...")
+        await dp.start_polling(bot, drop_pending_updates=True)
+    except asyncio.CancelledError:
+        logger.info("Telegram Bot polling task cancelled.")
+    except Exception as e:
+        logger.error(f"Telegram Bot polling error: {e}", exc_info=True)
+
+
 async def keep_alive_ping():
     """Ping self every 14 minutes to prevent Railway free tier from sleeping"""
     webapp_url = settings.WEBAPP_URL
@@ -110,11 +125,9 @@ async def review_reminder_loop():
     while True:
         try:
             now = datetime.utcnow()
-            # Threshold: current time minus 3 hours
             three_hours_ago = now - timedelta(hours=3)
 
             async with AsyncSessionLocal() as db:
-                # Load bookings with their users
                 result = await db.execute(
                     select(Booking)
                     .options(selectinload(Booking.user))
@@ -128,13 +141,11 @@ async def review_reminder_loop():
                 bookings = result.scalars().all()
 
                 for booking in bookings:
-                    # Combine booking_date + end_time into a datetime
                     try:
                         booking_end_dt = datetime.combine(booking.booking_date, booking.end_time)
                     except Exception:
                         continue
 
-                    # Check if 3 hours have passed since the appointment ended
                     if booking_end_dt <= three_hours_ago:
                         user = booking.user
                         if user and user.telegram_id:
@@ -142,7 +153,6 @@ async def review_reminder_loop():
                                 user_telegram_id=user.telegram_id,
                                 client_name=booking.client_name or user.full_name or "Дорогой клиент"
                             )
-                        # Mark as sent regardless (avoid spam even if tg_id missing)
                         booking.review_reminder_sent = True
 
                 await db.commit()
@@ -169,8 +179,8 @@ async def lifespan(app: FastAPI):
     global bot_task, keep_alive_task, review_reminder_task
     if bot and not settings.TELEGRAM_BOT_TOKEN.startswith("7000000000"):
         set_bot_instance(bot)
-        bot_task = asyncio.create_task(dp.start_polling(bot, skip_updates=True))
-        logger.info("Telegram Bot polling started successfully.")
+        bot_task = asyncio.create_task(start_telegram_bot())
+        logger.info("Telegram Bot polling task launched.")
     else:
         logger.info("Using mock/dev Bot token. Telegram Bot polling disabled for dev mode.")
 
@@ -232,7 +242,6 @@ if os.path.exists(frontend_dist):
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
-        # Don't intercept API or static paths
         if full_path.startswith("api/") or full_path.startswith("static/"):
             return JSONResponse(status_code=404, content={"detail": "Not found"})
         file_path = os.path.join(frontend_dist, full_path)
