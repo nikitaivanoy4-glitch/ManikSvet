@@ -33,6 +33,9 @@ def get_main_reply_keyboard(is_admin: bool = False):
         ],
         [
             KeyboardButton(text="📅 Мои записи"),
+            KeyboardButton(text="⭐ Отзывы")
+        ],
+        [
             KeyboardButton(text="📍 Адрес и Контакты")
         ]
     ]
@@ -218,3 +221,22 @@ async def cmd_admin(message: types.Message):
     msg += f"\n🌐 <b>Открыть Web-Админку:</b> <a href='{settings.WEBAPP_URL}#admin'>Перейти в Админ-панель</a>"
 
     await message.answer(msg, parse_mode="HTML")
+
+
+@dp.message(F.text == "⭐ Отзывы")
+async def msg_reviews(message: types.Message):
+    url = settings.WEBAPP_URL.rstrip('/') + "#reviews"
+    text = (
+        "<b>⭐ ОТЗЫВЫ НАШИХ КЛИЕНТОВ</b>\n\n"
+        "Мы очень ценим ваше мнение и стараемся быть лучше с каждым днём!\n\n"
+        "Вы можете прочитать отзывы клиентов или оставить свой отзыв через наше мини-приложение:"
+    )
+    inline_kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="⭐ Открыть отзывы / Оставить отзыв", web_app=WebAppInfo(url=url))]
+    ]) if settings.WEBAPP_URL.startswith("https://") else None
+
+    if inline_kb:
+        await message.answer(text, parse_mode="HTML", reply_markup=inline_kb)
+    else:
+        await message.answer(f"{text}\n\n👉 <a href='{url}'>Перейти к отзывам</a>", parse_mode="HTML")
+

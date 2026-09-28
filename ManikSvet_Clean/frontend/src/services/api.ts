@@ -1,4 +1,4 @@
-import { Service, Booking, AvailableDate, TimeSlot, PortfolioItem, User, ClientStats, DashboardData } from '../types';
+import { Service, Booking, AvailableDate, TimeSlot, PortfolioItem, User, ClientStats, DashboardData, Review } from '../types';
 
 const API_BASE = '/api/v1';
 
@@ -79,6 +79,14 @@ export const api = {
   // Admin Dashboard & Clients
   getDashboardStats: () => fetchApi<DashboardData>('/admin/dashboard'),
   getClientsList: () => fetchApi<ClientStats[]>('/admin/clients'),
+
+  // Reviews
+  getReviews: () => fetchApi<Review[]>('/reviews'),
+  createReview: (data: { author_name: string; rating: number; text: string }) =>
+    fetchApi<Review>('/reviews', { method: 'POST', body: JSON.stringify(data) }),
+  getAllReviewsAdmin: () => fetchApi<Review[]>('/reviews/admin/all'),
+  approveReview: (id: number) => fetchApi<Review>(`/reviews/admin/${id}/approve`, { method: 'PUT' }),
+  deleteReview: (id: number) => fetchApi<void>(`/reviews/admin/${id}`, { method: 'DELETE' }),
 };
 
 declare global {

@@ -15,13 +15,27 @@ export const InfoView: React.FC<InfoViewProps> = ({ settings, onBookClick }) => 
   const address = settings.address || 'г. Москва, ул. Красная Пресня, д. 24';
   const mapLink = settings.map_link || 'https://yandex.ru/maps';
   const welcomeText = settings.welcome_text || 'Добро пожаловать в ManikSvet — атмосферную студию авторского маникюра.';
+  const masterPhotoUrl = settings.master_photo_url || null;
 
   return (
     <div className="max-w-xl mx-auto px-4 py-6 space-y-6 animate-fade-in">
       {/* MASTER HERO CARD */}
       <div className="bg-white rounded-3xl border border-[#EAE3D9] p-6 space-y-4 text-center relative overflow-hidden shadow-xs">
-        <div className="w-24 h-24 rounded-full bg-[#F4EFEA] border-2 border-[#C5A059] mx-auto overflow-hidden flex items-center justify-center shadow-md">
-          <Heart className="w-10 h-10 text-[#C5A059]" />
+        <div className="w-28 h-28 rounded-full border-4 border-[#C5A059] mx-auto overflow-hidden flex items-center justify-center shadow-md bg-[#F4EFEA]">
+          {masterPhotoUrl ? (
+            <img
+              src={masterPhotoUrl}
+              alt={masterName}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+                (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+              }}
+            />
+          ) : null}
+          <span className={`font-serif text-3xl font-bold text-[#C5A059] ${masterPhotoUrl ? 'hidden' : ''}`}>
+            {masterName.charAt(0)}
+          </span>
         </div>
 
         <div>

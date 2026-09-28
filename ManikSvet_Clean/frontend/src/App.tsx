@@ -6,6 +6,7 @@ import { BookingWizard } from './components/client/BookingWizard';
 import { PortfolioView } from './components/client/PortfolioView';
 import { MyBookingsView } from './components/client/MyBookingsView';
 import { InfoView } from './components/client/InfoView';
+import { ReviewsView } from './components/client/ReviewsView';
 
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { ScheduleManager } from './components/admin/ScheduleManager';
@@ -14,6 +15,7 @@ import { ClientsManager } from './components/admin/ClientsManager';
 import { ServicesManager } from './components/admin/ServicesManager';
 import { PortfolioManager } from './components/admin/PortfolioManager';
 import { SettingsManager } from './components/admin/SettingsManager';
+import { ReviewsManager } from './components/admin/ReviewsManager';
 
 import { User, Service, PortfolioItem, Booking } from './types';
 import { api } from './services/api';
@@ -44,7 +46,7 @@ export const App: React.FC = () => {
     // Check hash URL location for direct tab deep-linking
     const hash = window.location.hash.replace('#', '');
     if (hash) {
-      if (['services', 'book', 'portfolio', 'my-bookings', 'info', 'admin'].includes(hash)) {
+      if (['services', 'book', 'portfolio', 'my-bookings', 'info', 'reviews', 'admin'].includes(hash)) {
         setActiveTab(hash === 'admin' ? 'admin-dashboard' : hash);
       }
     }
@@ -123,6 +125,12 @@ export const App: React.FC = () => {
           />
         )}
 
+        {activeTab === 'reviews' && (
+          <ReviewsView
+            onBookClick={() => setActiveTab('book')}
+          />
+        )}
+
         {/* ADMIN VIEWS */}
         {activeTab === 'admin-dashboard' && <AdminDashboard />}
         {activeTab === 'admin-schedule' && <ScheduleManager />}
@@ -131,6 +139,7 @@ export const App: React.FC = () => {
         {activeTab === 'admin-services' && <ServicesManager />}
         {activeTab === 'admin-portfolio' && <PortfolioManager />}
         {activeTab === 'admin-settings' && <SettingsManager />}
+        {activeTab === 'admin-reviews' && <ReviewsManager />}
       </main>
 
       <Navbar

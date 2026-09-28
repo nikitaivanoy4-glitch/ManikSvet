@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime, date, time
-from sqlalchemy import String, Integer, Float, Date, Time, DateTime, ForeignKey, Enum as SQLEnum
+from sqlalchemy import String, Integer, Float, Date, Time, DateTime, ForeignKey, Enum as SQLEnum, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
 
@@ -30,6 +30,9 @@ class Booking(Base):
     client_name: Mapped[str] = mapped_column(String(100), nullable=False)
     client_phone: Mapped[str] = mapped_column(String(30), nullable=False)
     notes: Mapped[str] = mapped_column(String(500), nullable=True)
+    
+    # Flag: has the post-visit review reminder been sent to the client?
+    review_reminder_sent: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

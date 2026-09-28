@@ -5,7 +5,7 @@ export interface User {
   last_name?: string;
   username?: string;
   phone?: string;
-  is_admin: bool;
+  is_admin: boolean;
   created_at: string;
 }
 
@@ -89,4 +89,13 @@ export interface DashboardData {
     bookings_count: number;
   };
   total_clients: number;
+}
+
+export interface Review {
+  id: number;
+  author_name: string;
+  rating: number;
+  text: string;
+  is_approved: boolean;
+  created_at: string;
 }
